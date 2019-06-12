@@ -4,7 +4,7 @@ I am using this README to drop in anything that I don't want to forget or want t
 
 ### Picking an optimizer in Keras
 
-[Different optimizers plotted with their training times and learning rates](https://cdn-images-1.medium.com/max/1200/1*gUHTqcK1PYR1EfyYAiCrmQ.png)
+![Different optimizers plotted with their training times and learning rates](https://cdn-images-1.medium.com/max/1200/1*gUHTqcK1PYR1EfyYAiCrmQ.png)
 
 * Every optimizer has a different interval of learning rates where it successfully converges/trains
 * There is no learning rate that works for all optimizers
