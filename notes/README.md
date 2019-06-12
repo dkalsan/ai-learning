@@ -14,3 +14,31 @@ I am using this README to drop in anything that I don't want to forget or want t
 
 Sources:
 * <https://medium.com/octavian-ai/which-optimizer-and-learning-rate-should-i-use-for-deep-learning-5acb418f9b2>
+
+### Loss functions for classification
+
+* Cross-Entropy/Log-loss:
+	* heavily penalizes predictions that are *wrong* but highly confident
+	* In multiclass classification, the loss is calculated seperately for each class label per observation and the result is sumed
+
+* Hinge Loss:
+	* Intented for _binary_ classification where target values are in set {-1, 1}
+	* Sometimes better than cross-entropy
+
+* Square Hinge Loss:
+	* Extension of Hinge loss
+	* Easier to work with than Hinge loss from numerical point of view
+
+* Multiclass Cross-Entropy:
+	* Requires one-hot encoding (introduces significant memory usage with high number of classes)
+
+* Sparse Multiclass Cross-Entropy:
+	* Solution to the memory problem
+	* No need for one-hot encoding
+
+* Kullback Leibler Divergence loss
+
+Sources:
+* <https://towardsdatascience.com/common-loss-functions-in-machine-learning-46af0ffc4d23>
+* <https://ml-cheatsheet.readthedocs.io/en/latest/loss_functions.html>
+* <https://machinelearningmastery.com/how-to-choose-loss-functions-when-training-deep-learning-neural-networks/>
