@@ -43,6 +43,17 @@ autoencoder.fit(
 	validation_data=(test_images, test_images)
 )
 
+
+
 ## Notes:
 # If you want to just preprocess the image, use numpy flatten (avoids unneccessary overhead in the model)
 # If you already have a tensor layer or need it inside the model, use keras flatten layer
+#
+# Tensor is actually a function f(x) that hasn't been evaluated yet.
+# We can pass it the x, e.g.: 
+# Dense(32, activation='relu')(Input(shape(784,)))
+# f ~ Dense(32, activation='relu'), x ~ Input(shape(784,))
+# This is called creating a Tensor using a "functional API"
+#
+# Keras Model:
+# model = Model(inputs=[...], outputs=[...])
