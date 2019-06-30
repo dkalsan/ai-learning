@@ -9,10 +9,15 @@ from tensorflow.keras.layers import Input, Conv2D, Conv2DTranspose, LeakyReLU
 import numpy as np
 import matplotlib.pyplot as plt
 
+import tensorflow.keras.backend as K
+
 # Hyperparameters
 d = 100
 k = 11
 relu_slope = 0.2
+c1 = 0.01
+c2 = 0.03
+kernel_size = 11
 
 ## Encoder
 
@@ -94,11 +99,43 @@ decoded = Conv2DTranspose(1, (4,4), strides=(2,2), padding='same', activation='l
 
 autoencoder = Model(input_img, decoded)
 
-autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
+def ssim_loss(y_true, y_pred):
 
-autoencoder.summary()
+	kernel = [1, kernel_size, kernel_size, 1]
+	y_true = K.reshape(y_true, [-1] + list(K.int_shape(y_true)[1:]))
+	y_pred = K.reshape(y_pred, [-1] + list(K.int_shape(y_pred)[1:]))
 
-"""
+	patches_true = tf.extract_image_patches(y_true, kernel, kernel, [1,1,1,1], 'valid')
+	patches_pred = tf.extract_image_patches(y_pred, kernel, kernel, [1,1,1,1], 'valid')
+
+	bs, w, h, c1, c2, c3 = K.int_shape(patches_pred)
+
+	patches_pred = K.reshape(patches_pred, [-1, w, h, c1 * c2 * c3])
+	patches_true = K.reshape(patches_true, [-1, w, h, c1 * c2 * c3])
+
+	# Get mean
+    u_true = K.mean(patches_true, axis=-1)
+    u_pred = K.mean(patches_pred, axis=-1)
+
+    # Get variance
+    var_true = K.var(patches_true, axis=-1)
+    var_pred = K.var(patches_pred, axis=-1)
+
+    # Get std dev
+    covar_true_pred = K.mean(patches_true * patches_pred, axis=-1) - u_true * u_pred
+
+    # Calculate SSIM
+	ssim = (2 * u_true * u_pred + c1) * (2 * covar_true_pred + c2)
+
+	denom = ((K.square(u_true) + K.square(u_pred) + c1) * (var_pred + var_true + c2))
+	ssim /= denom
+
+	return ssim
+
+autoencoder.compile(optimizer='adam', loss=ssim_loss)
+
+#autoencoder.summary()
+
 autoencoder.fit(
 	x_train,
 	x_train,
@@ -108,4 +145,3 @@ autoencoder.fit(
 	validation_data=(x_test, x_test),
 	callbacks=[TensorBoard(log_dir='/tmp/autoencoder')]
 )
-"""
