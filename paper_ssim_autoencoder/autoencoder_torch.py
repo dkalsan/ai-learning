@@ -17,14 +17,17 @@ import matplotlib.pyplot as plt
 
 import pytorch_ssim
 
+from custom_transforms.custom_transforms import NRandomCrop
+
 # Parameters
 LEARNING_RATE = 2e-4
 WEIGHT_DECAY = 1e-5
 ENCODING_DIM = 100
 RELU_SLOPE = 0.2
-BATCH_SIZE = 32
+BATCH_SIZE = 10
 K = 11
-NBR_EPOCHS = 1000
+NBR_EPOCHS = 200
+NBR_CROPS = 10
 
 # Visualization helper
 def imshow(img):
@@ -43,9 +46,10 @@ def denormalize(imgs):
 data_transforms = transforms.Compose([
 	transforms.Grayscale(),
 	transforms.Resize((256, 256)),
-	transforms.RandomCrop(128),
-	transforms.ToTensor(),
-	transforms.Normalize([0.5], [0.5])
+	NRandomCrop(128, NBR_CROPS),
+	transforms.Lambda(
+		lambda crops: torch.stack([transforms.Normalize([0.5], [0.5])(transforms.ToTensor()(crop)) for crop in crops]) 
+	)
 ])
 
 # Dataset Initialization
@@ -125,7 +129,14 @@ for epoch in range(NBR_EPOCHS):
 
 	for i, data in enumerate(train_dl, 0):
 
+		"""
+		.. Note::
+			One batch contains BATCH_SIZE*NBR_CROPS images!
+		"""
+
 		images, _ = data
+		bs, ncrops, c, h, w = images.size()
+		images = images.view(-1, c, h, w)
 		images = Variable(images).to(device)
 		
 		# Forward pass
@@ -141,10 +152,10 @@ for epoch in range(NBR_EPOCHS):
 		running_loss += loss.item()
 
 		# Save visualizations to disk
-		if(epoch % 50 == 0):
+		if(epoch % 5 == 0 and i % BATCH_SIZE == BATCH_SIZE-1):
 			original_and_reconstructed = torch.cat((images[:4], reconstructions[:4]), 0)
 			original_and_reconstructed = denormalize(original_and_reconstructed)
 			torchvision.utils.save_image(original_and_reconstructed.cpu(), './images/epoch_{}.png'.format(epoch), nrow=4)
 
 	# Log
-	print("[Epoch {0}/{1}], loss: {2}".format(epoch, NBR_EPOCHS, running_loss/np.ceil(len(train_dl)/BATCH_SIZE)))
+	print("[Epoch {0}/{1}], loss: {2}".format(epoch, NBR_EPOCHS, running_loss/np.ceil(len(train_dl)/(BATCH_SIZE*NBR_CROPS))))
